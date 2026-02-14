@@ -1,0 +1,206 @@
+--================================--
+--            null ULTRA          --
+--================================--
+
+local player = game.Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "null"
+
+local KEY = "NULL300"
+
+------------------------------------------------
+-- KEY SYSTEM
+------------------------------------------------
+
+local keyFrame = Instance.new("Frame", gui)
+keyFrame.Size = UDim2.new(0,300,0,180)
+keyFrame.Position = UDim2.new(0.5,-150,0.5,-90)
+keyFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+keyFrame.Active = true
+keyFrame.Draggable = true
+Instance.new("UICorner", keyFrame)
+
+local title = Instance.new("TextLabel", keyFrame)
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundTransparency = 1
+title.Text = "null - Enter Key"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextSize = 20
+
+local keyBox = Instance.new("TextBox", keyFrame)
+keyBox.Size = UDim2.new(0.8,0,0,40)
+keyBox.Position = UDim2.new(0.1,0,0.4,0)
+keyBox.BackgroundColor3 = Color3.new(1,1,1)
+keyBox.TextColor3 = Color3.new(0,0,0)
+Instance.new("UICorner", keyBox)
+
+local confirm = Instance.new("TextButton", keyFrame)
+confirm.Size = UDim2.new(0.6,0,0,35)
+confirm.Position = UDim2.new(0.2,0,0.7,0)
+confirm.Text = "Confirm"
+confirm.BackgroundColor3 = Color3.fromRGB(50,150,255)
+confirm.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", confirm)
+
+------------------------------------------------
+-- MAIN UI
+------------------------------------------------
+
+local toggleBtn = Instance.new("TextButton", gui)
+toggleBtn.Size = UDim2.new(0,120,0,40)
+toggleBtn.Position = UDim2.new(0,20,0.5,-20)
+toggleBtn.Text = "Null Menu"
+toggleBtn.BackgroundColor3 = Color3.new(1,1,1)
+toggleBtn.TextColor3 = Color3.new(0,0,0)
+toggleBtn.Visible = false
+Instance.new("UICorner", toggleBtn)
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,500,0,500)
+main.Position = UDim2.new(0.5,-250,0.5,-250)
+main.BackgroundColor3 = Color3.fromRGB(15,15,15)
+main.Visible = false
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main)
+
+confirm.MouseButton1Click:Connect(function()
+	if keyBox.Text == KEY then
+		keyFrame:Destroy()
+		toggleBtn.Visible = true
+	else
+		title.Text = "Wrong Key!"
+	end
+end)
+
+toggleBtn.MouseButton1Click:Connect(function()
+	main.Visible = not main.Visible
+end)
+
+UIS.InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.RightShift then
+		main.Visible = not main.Visible
+	end
+end)
+
+------------------------------------------------
+-- HELPER BUTTON
+------------------------------------------------
+
+local function createButton(text,posY,callback)
+	local btn = Instance.new("TextButton", main)
+	btn.Size = UDim2.new(0.8,0,0,40)
+	btn.Position = UDim2.new(0.1,0,posY,0)
+	btn.Text = text
+	btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	btn.TextColor3 = Color3.new(1,1,1)
+	Instance.new("UICorner", btn)
+	btn.MouseButton1Click:Connect(callback)
+end
+
+------------------------------------------------
+-- PLAYER
+------------------------------------------------
+
+createButton("Speed 300",0.05,function()
+	local hum = player.Character and player.Character:FindFirstChild("Humanoid")
+	if hum then hum.WalkSpeed = 300 end
+end)
+
+createButton("Jump 300",0.13,function()
+	local hum = player.Character and player.Character:FindFirstChild("Humanoid")
+	if hum then hum.JumpPower = 300 end
+end)
+
+-- Infinite Jump
+local infJump = false
+createButton("Infinite Jump",0.21,function()
+	infJump = not infJump
+end)
+
+UIS.JumpRequest:Connect(function()
+	if infJump and player.Character then
+		player.Character:FindFirstChild("Humanoid"):ChangeState("Jumping")
+	end
+end)
+
+-- Fly WASD
+local flying = false
+local bodyVel
+
+createButton("Toggle Fly",0.29,function()
+	flying = not flying
+	if flying then
+		bodyVel = Instance.new("BodyVelocity")
+		bodyVel.MaxForce = Vector3.new(1e5,1e5,1e5)
+		bodyVel.Parent = player.Character.HumanoidRootPart
+	else
+		if bodyVel then bodyVel:Destroy() end
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	if flying and bodyVel then
+		local move = Vector3.new(0,0,0)
+		if UIS:IsKeyDown(Enum.KeyCode.W) then move += workspace.CurrentCamera.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.S) then move -= workspace.CurrentCamera.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.A) then move -= workspace.CurrentCamera.CFrame.RightVector end
+		if UIS:IsKeyDown(Enum.KeyCode.D) then move += workspace.CurrentCamera.CFrame.RightVector end
+		bodyVel.Velocity = move * 100
+	end
+end)
+
+------------------------------------------------
+-- VISUAL
+------------------------------------------------
+
+createButton("FullBright",0.40,function()
+	game.Lighting.Brightness = 5
+	game.Lighting.ClockTime = 14
+	game.Lighting.FogEnd = 100000
+end)
+
+createButton("Remove Fog",0.48,function()
+	game.Lighting.FogEnd = 100000
+end)
+
+createButton("Night Mode",0.56,function()
+	game.Lighting.ClockTime = 0
+end)
+
+createButton("FOV 120",0.64,function()
+	workspace.CurrentCamera.FieldOfView = 120
+end)
+
+-- Rainbow
+local rainbow = false
+createButton("Toggle Rainbow",0.72,function()
+	rainbow = not rainbow
+	while rainbow do
+		task.wait(0.3)
+		if player.Character then
+			for _,v in pairs(player.Character:GetChildren()) do
+				if v:IsA("BasePart") then
+					v.Color = Color3.new(math.random(),math.random(),math.random())
+				end
+			end
+		end
+	end
+end)
+
+------------------------------------------------
+-- FUN
+------------------------------------------------
+
+createButton("Spawn Dummy",0.80,function()
+	local part = Instance.new("Part",workspace)
+	part.Size = Vector3.new(2,5,2)
+	part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(0,0,-5)
+	part.BrickColor = BrickColor.new("Bright red")
+end)
+
+createButton("Teleport Up",0.88,function()
+	player.Character:MoveTo(Vector3.new(0,100,0))
+end)
